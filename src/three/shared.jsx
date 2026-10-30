@@ -21,7 +21,7 @@ export function Studio({ warm = '#FFC83D', cool = '#A7F0C9' }) {
       <ambientLight intensity={0.5} />
       <directionalLight position={[3, 6, 5]} intensity={2.4} color="#FFF3DE" />
       <directionalLight position={[-5, 1, -3]} intensity={0.9} color={cool} />
-      <Environment resolution={256}>
+      <Environment resolution={128}>
         <Lightformer form="rect" intensity={2.2} position={[0, 5, 4]} scale={[8, 3, 1]} />
         <Lightformer form="rect" intensity={1.2} color={warm} position={[-5, 1, 2]} rotation-y={Math.PI / 3} scale={[3, 6, 1]} />
         <Lightformer form="rect" intensity={0.8} color={cool} position={[5, 0, 1]} rotation-y={-Math.PI / 3} scale={[3, 6, 1]} />

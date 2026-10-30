@@ -112,7 +112,7 @@ export default function GoalScene({ p, kind }) {
   const inView = useInView(wrap)
   return (
     <div ref={wrap} style={{ position: 'absolute', inset: 0 }}>
-      <Canvas dpr={[1, 2]} camera={{ position: [0, 0.8, 8.2], fov: 36 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas dpr={[1, 1.75]} camera={{ position: [0, 0.8, 8.2], fov: 36 }} gl={{ antialias: true, alpha: true }}>
         <PauseOffscreen active={inView} />
         <Studio warm="#FFC83D" cool="#A7F0C9" />
         <PresentationControls global={false} cursor snap={false} speed={1.4} polar={[-0.2, 0.3]} azimuth={[-1.2, 1.2]} rotation={[0.12, -0.55, 0]}>
@@ -122,7 +122,7 @@ export default function GoalScene({ p, kind }) {
             </group>
           </Float>
         </PresentationControls>
-        <ContactShadows position={[0, -1.25, 0]} opacity={0.5} scale={8} blur={2.4} far={2.5} color="#000" />
+        <ContactShadows position={[0, -1.25, 0]} opacity={0.5} scale={8} blur={2.4} far={2.5} resolution={256} color="#000" />
       </Canvas>
     </div>
   )

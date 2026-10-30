@@ -98,14 +98,45 @@ function CoinDrops({ drops }) {
   ))
 }
 
-function Samosa(props) {
+function Gift(props) {
+  const ribbon = { color: '#FFC83D', roughness: 0.35, metalness: 0.1 }
   return (
     <group {...props}>
-      <mesh scale={[1, 1, 0.62]}>
-        <coneGeometry args={[0.5, 0.78, 3, 1]} />
-        <meshPhysicalMaterial color="#E9A443" roughness={0.65} clearcoat={0.2} flatShading />
-      </mesh>
+      <RoundedBox args={[0.8, 0.62, 0.8]} radius={0.07} smoothness={4}>
+        <meshPhysicalMaterial color="#F28A9B" roughness={0.45} clearcoat={0.4} />
+      </RoundedBox>
+      <RoundedBox args={[0.9, 0.14, 0.9]} radius={0.05} position-y={0.34} smoothness={4}>
+        <meshPhysicalMaterial color="#F28A9B" roughness={0.45} clearcoat={0.4} />
+      </RoundedBox>
+      <mesh position-y={0.05}><boxGeometry args={[0.16, 0.74, 0.82]} /><meshStandardMaterial {...ribbon} /></mesh>
+      <mesh position-y={0.05}><boxGeometry args={[0.82, 0.74, 0.16]} /><meshStandardMaterial {...ribbon} /></mesh>
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * 0.14, 0.5, 0]} rotation={[0, 0, s * 0.6]}>
+          <torusGeometry args={[0.13, 0.045, 12, 32]} />
+          <meshStandardMaterial {...ribbon} />
+        </mesh>
+      ))}
     </group>
+  )
+}
+
+function Star(props) {
+  const geo = useMemo(() => {
+    const shape = new THREE.Shape()
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 ? 0.2 : 0.46
+      const a = (i / 10) * Math.PI * 2 + Math.PI / 2
+      shape[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r)
+    }
+    shape.closePath()
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.06, bevelSize: 0.05, bevelSegments: 4 })
+    g.center()
+    return g
+  }, [])
+  return (
+    <mesh geometry={geo} {...props}>
+      <meshPhysicalMaterial color="#FFC83D" roughness={0.3} metalness={0.2} clearcoat={0.8} />
+    </mesh>
   )
 }
 
@@ -135,6 +166,13 @@ function Note(props) {
   )
 }
 
+// Tells the page the scene has actually drawn, so the intro can lift.
+function ReadySignal({ onReady }) {
+  const n = useRef(0)
+  useFrame(() => { if (++n.current === 3) onReady?.() })
+  return null
+}
+
 // Tilts the whole scene toward the pointer.
 function Rig({ children }) {
   const g = useRef()
@@ -147,13 +185,14 @@ function Rig({ children }) {
   return <group ref={g} scale={fit}>{children}</group>
 }
 
-export default function HeroScene({ drops, onHit }) {
+export default function HeroScene({ drops, onHit, onReady }) {
   const wrap = useRef()
   const inView = useInView(wrap)
   return (
     <div ref={wrap} style={{ position: 'absolute', inset: 0 }}>
-      <Canvas dpr={[1, 2]} camera={{ position: [0, 0.4, 8.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas dpr={[1, 1.75]} camera={{ position: [0, 0.4, 8.6], fov: 34 }} gl={{ antialias: true, alpha: true }}>
         <PauseOffscreen active={inView} />
+        <ReadySignal onReady={onReady} />
         <Studio />
         <Rig>
           <Float speed={1.3} rotationIntensity={0.12} floatIntensity={0.5}>
@@ -162,7 +201,7 @@ export default function HeroScene({ drops, onHit }) {
             </group>
           </Float>
           <Float speed={2} rotationIntensity={1.2} floatIntensity={1.4} position={[-2.35, 1.35, -0.4]}>
-            <Samosa rotation={[0.4, 0.5, -0.3]} />
+            <Gift rotation={[0.3, 0.6, -0.15]} scale={0.95} />
           </Float>
           <Float speed={1.7} rotationIntensity={0.8} floatIntensity={1.2} position={[2.35, 1.0, -0.2]}>
             <IceCream rotation={[0, 0, -0.35]} scale={0.95} />
@@ -177,10 +216,10 @@ export default function HeroScene({ drops, onHit }) {
             <Coin radius={0.22} rotation={[0.4, 0, 1]} />
           </Float>
           <Float speed={1.9} rotationIntensity={1.6} floatIntensity={1.2} position={[-1.2, 2.25, -1.5]}>
-            <Samosa scale={0.55} rotation={[-0.3, 1, 0.5]} />
+            <Star rotation={[0.2, -0.5, 0.3]} scale={0.85} />
           </Float>
         </Rig>
-        <ContactShadows position={[0, -1.85, 0]} opacity={0.38} scale={10} blur={2.8} far={3.2} color="#5A2A12" />
+        <ContactShadows position={[0, -1.85, 0]} opacity={0.38} scale={10} blur={2.8} far={3.2} resolution={256} frames={1} color="#5A2A12" />
       </Canvas>
     </div>
   )

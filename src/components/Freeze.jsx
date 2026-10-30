@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FREEZE_MS, rupees, useStore } from '../store.jsx'
-import { Btn, Burst, Chip, Item, Money, SectionHead, Stagger, spring, useToast } from './ui.jsx'
+import { Icon } from '../icons.jsx'
+import { Btn, Burst, Item, Money, SectionHead, Stagger, spring, useToast } from './ui.jsx'
 
-const ICONS = ['🎮', '👟', '🧸', '🚁', '🎧', '🍫']
+const ICONS = ['game', 'sneaker', 'headphones', 'drone', 'phone', 'guitar']
 const FLAKES = [[8, 12], [78, 8], [86, 62], [14, 70], [50, 84]]
 
 function useNow() {
@@ -29,8 +30,8 @@ function Cube({ f, now }) {
 
   const choose = (choice) => {
     dispatch({ type: 'thaw', id: f.id, choice })
-    if (choice === 'skip') { setFire(Date.now()); toast(`🧊 ${rupees(f.price)} kept in your pocket!`) }
-    else toast('📨 Sent to Parent corner')
+    if (choice === 'skip') { setFire(Date.now()); toast(`${rupees(f.price)} kept in your pocket`, 'piggy') }
+    else toast('Sent to the grown-up corner', 'ask')
   }
 
   return (
@@ -39,14 +40,14 @@ function Cube({ f, now }) {
       whileHover={{ y: -6, rotate: thawed ? 0 : 1.5 }} transition={spring}>
       {!thawed && FLAKES.map(([x, y], i) => (
         <motion.span key={i} className="flake" style={{ left: `${x}%`, top: `${y}%` }} aria-hidden="true"
-          animate={{ rotate: 360 }} transition={{ duration: 12 + i * 3, repeat: Infinity, ease: 'linear' }}>❄</motion.span>
+          animate={{ rotate: 360 }} transition={{ duration: 12 + i * 3, repeat: Infinity, ease: 'linear' }}><Icon name="freeze" size={18 + (i % 3) * 6} weight="duotone" /></motion.span>
       ))}
       <Burst fire={fire} />
-      <motion.div className="big" animate={thawed && !f.resolved ? { rotate: [0, -8, 8, -4, 0] } : {}} transition={{ duration: 0.8, repeat: thawed && !f.resolved ? Infinity : 0, repeatDelay: 1.6 }}>{f.emoji}</motion.div>
+      <motion.div className="big" animate={thawed && !f.resolved ? { rotate: [0, -8, 8, -4, 0] } : {}} transition={{ duration: 0.8, repeat: thawed && !f.resolved ? Infinity : 0, repeatDelay: 1.6 }}><Icon name={f.icon} size={44} weight="duotone" /></motion.div>
       <div className="t">{f.item} · {rupees(f.price)}</div>
 
       {f.resolved ? (
-        <div className="done-msg">{f.resolved === 'skip' ? `Melted away. ${rupees(f.price)} saved! 🎉` : 'Still wanted. Sent to a grown-up ✓'}</div>
+        <div className="done-msg">{f.resolved === 'skip' ? `Melted away. ${rupees(f.price)} saved!` : 'Still wanted. Sent to a grown-up.'}</div>
       ) : thawed ? (
         <>
           <p style={{ fontWeight: 800, marginTop: 8 }}>A day later… do you still want it?</p>
@@ -59,7 +60,7 @@ function Cube({ f, now }) {
         <>
           <div className="clock" aria-label="Time left">{clock(left)}</div>
           <div className="acts">
-            <button type="button" className="link" onClick={() => dispatch({ type: 'skipTime', id: f.id })}>⏩ skip time (demo)</button>
+            <button type="button" className="link" onClick={() => dispatch({ type: 'skipTime', id: f.id })}><Icon name="hourglass" size={16} /> Skip the wait (demo)</button>
           </div>
         </>
       )}
@@ -73,7 +74,7 @@ export default function Freeze() {
   const now = useNow()
   const [item, setItem] = useState('')
   const [price, setPrice] = useState('')
-  const [emoji, setEmoji] = useState(ICONS[0])
+  const [icon, setIcon] = useState(ICONS[0])
   const n = Math.round(Number(price))
   const ok = item.trim() && n > 0
   const skipped = state.freezer.filter((f) => f.resolved === 'skip').length
@@ -81,8 +82,8 @@ export default function Freeze() {
   const freeze = (e) => {
     e.preventDefault()
     if (!ok) return
-    dispatch({ type: 'freeze', item: { item: item.trim(), price: n, emoji } })
-    toast('🧊 Frozen for 24 hours')
+    dispatch({ type: 'freeze', item: { item: item.trim(), price: n, icon } })
+    toast('Frozen for 24 hours', 'freeze')
     setItem(''); setPrice('')
   }
 
@@ -97,8 +98,12 @@ export default function Freeze() {
             <form className="card" onSubmit={freeze}>
               <h3>Put a want on ice</h3>
               <span className="label">Pick a picture</span>
-              <div className="chips">
-                {ICONS.map((i) => <Chip key={i} on={emoji === i} onClick={() => setEmoji(i)} aria-label={i} style={{ fontSize: '1.3rem' }}>{i}</Chip>)}
+              <div className="icon-row">
+                {ICONS.map((i) => (
+                  <button type="button" key={i} className={'icon-pick' + (icon === i ? ' on' : '')} onClick={() => setIcon(i)} aria-label={i} aria-pressed={icon === i}>
+                    <Icon name={i} size={22} />
+                  </button>
+                ))}
               </div>
               <label className="label" htmlFor="fz-item">What do you want?</label>
               <input id="fz-item" className="input" maxLength={40} placeholder="e.g. New sneakers" value={item} onChange={(e) => setItem(e.target.value)} />
@@ -107,7 +112,7 @@ export default function Freeze() {
                 <span>₹</span>
                 <input id="fz-price" className="input" inputMode="numeric" placeholder="0" value={price} onChange={(e) => setPrice(e.target.value.replace(/\D/g, '').slice(0, 6))} />
               </div>
-              <div style={{ marginTop: 20 }}><Btn type="submit" disabled={!ok} style={{ background: 'var(--ice-d)' }}>🧊 Freeze for 24h</Btn></div>
+              <div className="form-foot"><Btn type="submit" className="wide" disabled={!ok} style={{ background: 'var(--ice-d)' }}><Icon name="freeze" size={20} /> Freeze for 24 hours</Btn></div>
             </form>
             <div className="kept">
               <Money value={totals.notWasted} className="d" />
@@ -122,7 +127,7 @@ export default function Freeze() {
                 </AnimatePresence>
               </motion.div>
             ) : (
-              <div className="empty" style={{ marginTop: 0, background: '#EAFBFE' }}>Your freezer is empty. Freeze your first want on the left. ❄</div>
+              <div className="empty" style={{ marginTop: 0, background: '#EAFBFE' }}>Your freezer is empty. Freeze your first want and decide tomorrow.</div>
             )}
           </Item>
         </Stagger>

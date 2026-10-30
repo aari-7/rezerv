@@ -1,16 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { AnimatePresence, motion, useSpring, useTransform } from 'framer-motion'
 import { rupees } from '../store.jsx'
+import { Icon } from '../icons.jsx'
 
 export const ease = [0.22, 1, 0.36, 1]
 export const spring = { type: 'spring', stiffness: 380, damping: 26 }
 
 // Scroll-triggered fade-up, used for single blocks.
-export function Reveal({ children, delay = 0, y = 44, className, style }) {
+export function Reveal({ children, delay = 0, y = 40, className, style }) {
   return (
     <motion.div className={className} style={style}
       initial={{ opacity: 0, y }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease, delay }}>
+      viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.8, ease, delay }}>
       {children}
     </motion.div>
   )
@@ -20,7 +21,7 @@ export function Reveal({ children, delay = 0, y = 44, className, style }) {
 const group = { hidden: {}, show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } } }
 export const itemV = { hidden: { opacity: 0, y: 32, scale: 0.97 }, show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease } } }
 
-export function Stagger({ children, className, amount = 0.2 }) {
+export function Stagger({ children, className, amount = 0.08 }) {
   return (
     <motion.div className={className} variants={group} initial="hidden" whileInView="show" viewport={{ once: true, amount }}>
       {children}
@@ -49,14 +50,12 @@ export function Money({ value, className }) {
   return <motion.span className={className}>{text}</motion.span>
 }
 
-export const Samosa = ({ size = 34 }) => (
-  <svg viewBox="0 0 40 36" width={size} height={size * 0.9} aria-hidden="true">
-    <path d="M20 3c2.4 0 17 24.6 17 27.4 0 2.6-2.6 2.6-17 2.6S3 33 3 30.4C3 27.6 17.6 3 20 3z" fill="#E9A443" stroke="#111A15" strokeWidth="2.6" strokeLinejoin="round" />
-    <path d="M20 9v21" stroke="#B87322" strokeWidth="2.2" strokeLinecap="round" />
-    <circle cx="13.5" cy="25" r="1.5" fill="#7A4A16" /><circle cx="26.5" cy="22.5" r="1.5" fill="#7A4A16" /><circle cx="24" cy="28" r="1.2" fill="#7A4A16" />
-  </svg>
+// Icon sitting in a coloured, outlined tile.
+export const Badge = ({ name, color = 'var(--sun)', size = 44, icon = 22, className = '' }) => (
+  <span className={'badge ' + className} style={{ background: color, width: size, height: size }}>
+    <Icon name={name} size={icon} weight="bold" />
+  </span>
 )
-export const UnitIcon = ({ unit, size }) => (unit.id === 'samosa' ? <Samosa size={size} /> : <span style={{ fontSize: size ? size * 0.85 : undefined }}>{unit.emoji}</span>)
 
 const COLORS = ['#D9572B', '#FFC83D', '#1F7A55', '#4FB3E8', '#F28A9B', '#A7F0C9']
 export function Burst({ fire }) {
@@ -83,7 +82,7 @@ export function Burst({ fire }) {
 const ToastCtx = createContext(() => {})
 export function ToastProvider({ children }) {
   const [msg, setMsg] = useState(null)
-  const show = useCallback((text) => setMsg({ text, k: Date.now() }), [])
+  const show = useCallback((text, icon = 'check') => setMsg({ text, icon, k: Date.now() }), [])
   useEffect(() => {
     if (!msg) return
     const t = setTimeout(() => setMsg(null), 2600)
@@ -96,7 +95,7 @@ export function ToastProvider({ children }) {
         {msg && (
           <motion.div key={msg.k} className="toast" role="status"
             initial={{ y: 80, x: '-50%', opacity: 0 }} animate={{ y: 0, x: '-50%', opacity: 1 }} exit={{ y: 80, x: '-50%', opacity: 0 }} transition={spring}>
-            {msg.text}
+            <span className="toast-ico"><Icon name={msg.icon} size={16} weight="bold" /></span>{msg.text}
           </motion.div>
         )}
       </AnimatePresence>
